@@ -25,6 +25,9 @@ class InfluxDBHandler:
         try:
             device_timestamp = datetime.fromtimestamp(int(data["timestamp"]), tz=timezone.utc)
 
+            # Mengambil id_alat dari data payload untuk digunakan di logging
+            id_alat = data.get("id_alat", "ALAT_01")
+ 
             point = Point("pengukuran_udara") \
                 .tag("id_alat", data.get("id_alat", "ALAT_01")) \
                 .field("suhu", float(data.get("suhu", 0.0))) \
@@ -34,7 +37,7 @@ class InfluxDBHandler:
                 .time(device_timestamp)
 
             self.write_api.write(bucket=config.INFLUX_BUCKET, org=config.INFLUX_ORG, record=point)
-            logging.info(f"Data point untuk id_alat '{point.tags['id_alat']}' berhasil disimpan.")
+            logging.info(f"Data point untuk id_alat '{id_alat}' berhasil disimpan.")
             return True
         except (KeyError, TypeError) as e:
             logging.error(f"Error pada data JSON (kunci atau tipe data salah): {e}")
