@@ -1,0 +1,9 @@
+# Abaikan file environment yang berisi kredensial
+.env
+
+# Abaikan file cache Python
+__pycache__/
+*.pyc
+
+# abaikan virtual env python
+moon/
