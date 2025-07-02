@@ -1,0 +1,23 @@
+name: Deploy to Raspberry Pi via ngrok
+
+on:
+  push:
+    branches:
+      - main
+
+jobs:
+  deploy:
+    runs-on: ubuntu-latest
+
+    steps:
+      - name: Deploy via SSH
+        uses: appleboy/ssh-action@v1.0.0
+        with:
+          host: ${{ secrets.NULTRA_IP }}
+          port: ${{ secrets.NULTRA_PORT }}
+          username: ${{ secrets.UNULTRA_USER }}
+          key: ${{ secrets.SSH_KEY }}
+          ssh-option: "-o StrictHostKeyChecking=no"
+          script: |
+            cd /home/nulta/1/nultra
+            git pull origin main
