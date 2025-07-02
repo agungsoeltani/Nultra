@@ -24,25 +24,25 @@ class InfluxDBHandler:
     def write_data(self, data: dict):
         """Memformat dan menulis data yang diterima ke InfluxDB."""
         try:
-            # Debug: log data mentah
-            logging.debug(f"📦 Payload mentah diterima: {data}")
+            # Log data mentah (raw)
+            logging.info(f"📦 Data mentah diterima: {data}")
 
-            # Validasi timestamp
+            # Validasi dan parsing timestamp
             raw_timestamp = data.get("timestamp")
             if raw_timestamp is None:
                 raise ValueError("Field 'timestamp' tidak ditemukan dalam data.")
 
-            # Parsing timestamp (string atau angka)
             if isinstance(raw_timestamp, str):
                 device_timestamp = parser.parse(raw_timestamp).astimezone(timezone.utc)
-                logging.debug(f"🕒 Timestamp string berhasil di-parse: {device_timestamp.isoformat()}")
+                logging.debug(f"🕒 Timestamp (string) berhasil di-parse: {device_timestamp.isoformat()}")
             else:
                 device_timestamp = datetime.fromtimestamp(int(raw_timestamp), tz=timezone.utc)
-                logging.debug(f"🕒 Timestamp integer berhasil diubah: {device_timestamp.isoformat()}")
+                logging.debug(f"🕒 Timestamp (integer) berhasil diubah: {device_timestamp.isoformat()}")
 
+            # Ambil ID alat
             id_alat = data.get("id_alat", "ALAT_01")
 
-            # Membuat data point
+            # Buat data point
             point = Point("pengukuran_udara") \
                 .tag("id_alat", id_alat) \
                 .field("suhu", float(data.get("suhu", 0.0))) \
@@ -51,20 +51,21 @@ class InfluxDBHandler:
                 .field("gas_ppm", float(data.get("gas_ppm", 0.0))) \
                 .time(device_timestamp)
 
-            # Menulis ke InfluxDB
+            # Tulis ke InfluxDB
             self.write_api.write(bucket=config.INFLUX_BUCKET, org=config.INFLUX_ORG, record=point)
-            logging.info(f"✅ Data berhasil dikirim ke InfluxDB untuk id_alat '{id_alat}' pada waktu {device_timestamp.isoformat()}")
+
+            logging.info(f"✅ Data berhasil ditulis ke InfluxDB untuk id_alat '{id_alat}' @ {device_timestamp.isoformat()}")
             return True
 
         except KeyError as e:
-            logging.error(f"❌ KeyError: Field wajib hilang dalam data: {e}")
+            logging.error(f"❌ KeyError: Field wajib hilang: {e}")
         except TypeError as e:
-            logging.error(f"❌ TypeError: Format tipe data tidak sesuai: {e}")
+            logging.error(f"❌ TypeError: Format tipe data salah: {e}")
         except ValueError as e:
             logging.error(f"❌ ValueError: Nilai tidak valid: {e}")
         except InfluxDBError as e:
-            logging.error(f"❌ InfluxDBError: Gagal menulis ke InfluxDB. Periksa organisasi, bucket, atau field. Detail: {e}")
+            logging.error(f"❌ InfluxDBError: Gagal menulis ke InfluxDB. Cek org, bucket, atau data field. Detail: {e}")
         except Exception as e:
-            logging.error(f"❌ Exception tak terduga saat memproses data InfluxDB: {e}")
-        
+            logging.error(f"❌ Exception tak terduga saat memproses data: {e}")
+
         return False
