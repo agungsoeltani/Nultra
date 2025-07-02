@@ -147,12 +147,12 @@ void loop() {
     strftime(timeString, sizeof(timeString), "%Y-%m-%d %H:%M:%S", &timeinfo);
 
     StaticJsonDocument<256> doc;
-    doc["waktu"] = timeString;
+    doc["timestamp"] = timeString;
     doc["suhu"] = suhu;
     doc["kelembaban"] = kelembaban;
     doc["tekanan"] = tekanan;
     doc["mq2_raw"] = mq2_raw;
-    doc["ppm"] = ppm;
+    doc["gas_ppm"] = ppm;
 
     char buffer[256];
     serializeJson(doc, buffer);
