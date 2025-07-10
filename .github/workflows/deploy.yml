@@ -15,3 +15,8 @@ jobs:
           cd /home/nultra/1/Nultra  # ← Ganti ke path sebenarnya di Raspi kamu
           git reset --hard HEAD     # optional: pastikan tidak ada konflik
           git pull origin main
+      - name: Restart logger_main.py
+        run: |
+          pkill -f logger_main.py || true
+          sleep 1
+          nohup python3 logger_main.py > log.txt 2>&1 &
