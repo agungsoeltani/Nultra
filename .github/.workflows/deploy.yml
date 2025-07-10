@@ -1,20 +1,15 @@
-name: Run the code di Raspberry Pi
+name: Run logger_main.py di Raspberry Pi
 
 on:
   push:
-    branches: [main]  # Jalankan saat kamu push ke branch 'main'
+    branches: [main]
 
 jobs:
-  run_logger:
-    runs-on: [self-hosted, raspi5]  # Sesuai label di runner kamu
-
+  run-logger:
+    runs-on: [self-hosted, raspi5]
     steps:
-      - uses: actions/checkout@v3  # Tarik isi repo
-
-      - name: Matikan proses logger_main.py (jika ada)
-        run: |
-          pkill -f logger_main.py || true
-
+      - uses: actions/checkout@v3
       - name: Jalankan logger_main.py
         run: |
+          pkill -f logger_main.py || true
           nohup python3 logger_main.py > logger.log 2>&1 &
