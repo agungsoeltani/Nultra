@@ -12,10 +12,9 @@ jobs:
     steps:
       - name: Pull latest changes
         run: |
-          cd /home/nultra/1/Nultra  # ← Ganti ke path sebenarnya di Raspi kamu
-          git reset --hard HEAD     # optional: pastikan tidak ada konflik
+          cd /home/nultra/1/Nultra
+          git reset --hard HEAD
           git pull origin main
 
-      - name: Jalankan logger_main.py
-        run: |
-          nohup python3 logger_main.py > logger.log 2>&1 &
+      - name: Restart logger_main via systemd
+        run: sudo systemctl restart logger_main
