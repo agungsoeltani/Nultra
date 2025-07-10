@@ -1,16 +1,17 @@
-name: Run logger_main.py di Raspberry Pi
+name: Auto Git Pull on Push
 
 on:
   push:
-    branches: [main]
+    branches:
+      - main  # atau ganti ke branch lain kalau perlu
 
 jobs:
-  run-logger:
-    runs-on: [self-hosted, raspi5]
+  pull-changes:
+    runs-on: self-hosted
 
     steps:
-      - uses: actions/checkout@v3
-      - name: Jalankan logger_main.py
+      - name: Pull latest changes
         run: |
-          pkill -f logger_main.py || true
-          nohup python3 logger_main.py > logger.log 2>&1 &
+          cd /home/nultra/1/Nultra  # ← Ganti ke path sebenarnya di Raspi kamu
+          git reset --hard HEAD     # optional: pastikan tidak ada konflik
+          git pull origin main
