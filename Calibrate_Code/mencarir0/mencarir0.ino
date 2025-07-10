@@ -1,29 +1,14 @@
-#define RL_VALUE 5.0
-#define SENSOR_PIN 34
+#include <Servo.h>
+
+Servo myServo;  // buat objek servo
 
 void setup() {
-  Serial.begin(9600);
-  Serial.println("=== Kalibrasi MQ-2 (ESP32) ===");
-  Serial.println("Letakkan sensor di udara bersih...");
+  myServo.attach(9);  // sambungkan ke pin D9
 }
 
 void loop() {
-  float adc_sum = 0;
-  for (int i = 0; i < 100; i++) {
-    adc_sum += analogRead(SENSOR_PIN);
-    delay(1);
-  }
-
-  float adc_avg = adc_sum / 100.0;
-  float sensor_volt = (adc_avg / 4095.0) * 5.0;  // untuk ESP32
-  float RS_air = RL_VALUE * (5.0 - sensor_volt) / sensor_volt;
-
-  Serial.print("ADC: ");
-  Serial.print(adc_avg);
-  Serial.print(" | Tegangan: ");
-  Serial.print(sensor_volt, 3);
-  Serial.print(" V | R0 = ");
-  Serial.println(RS_air, 2);
-
-  delay(1000);
+  myServo.write(90);      // gerakkan ke 90 derajat
+  delay(2000);            // tunggu 5 detik
+  myServo.write(0);       // kembali ke 0 derajat
+  delay(1000);            // tunggu 1 detik sebelum mengulang
 }

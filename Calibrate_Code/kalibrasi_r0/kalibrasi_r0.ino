@@ -1,5 +1,5 @@
 #include <WiFi.h>
-#include <WiFiClientSecure.h>
+#include <WiFiClient.h>
 #include <ArduinoMqttClient.h>
 #include <DHT.h>
 #include <Adafruit_Sensor.h>
@@ -13,9 +13,9 @@
 const char* ssid = "A_STATION";
 const char* password = "agungx609soeltani";
 
-// ================== Konfigurasi MQTT (WSS via Cloudflare) ==================
-const char* mqtt_server = "192.168.1.15";
-const int mqtt_port = 8883;
+// ================== Konfigurasi MQTT (Local Broker) ==================
+const char* mqtt_server = "192.168.1.3";
+const int mqtt_port = 1883;
 const char* mqtt_user = "nultra";
 const char* mqtt_pass = "nultragroup";
 const char* mqtt_client_id = "esp32-alat-kualitas-udara-01";
@@ -32,12 +32,13 @@ const char* mqtt_topic_subscribe = "iot/kualitas_udara/alat01/perintah";
 #define BUZZER_PIN 33
 
 // ================== Kalibrasi MQ2 ==================
-#define R0 3.93
+#define R0 207.0               // Ganti ini dengan hasil kalibrasi terbaru
 #define RL_VALUE 5.0
 #define ADC_RESOLUTION 4095.0
 #define SMOKE_SLOPE -0.39
 #define SMOKE_INTERCEPT_Y 3.4
 #define SMOKE_INTERCEPT_X 200
+
 const int THRESHOLD_SEDANG = 300;
 const int THRESHOLD_BURUK = 700;
 const long PUBLISH_INTERVAL = 60000;
@@ -48,7 +49,7 @@ const long gmtOffset_sec = 3600 * 7;
 const int daylightOffset_sec = 0;
 
 // ================== Objek ==================
-WiFiClientSecure net;
+WiFiClient net;
 MqttClient mqttClient(net);
 DHT dht(DHTPIN, DHTTYPE);
 Adafruit_BMP280 bmp;
@@ -80,24 +81,17 @@ void setup() {
     while (1);
   }
 
-  // WiFi
   WiFi.begin(ssid, password);
   Serial.print("Menghubungkan WiFi");
   while (WiFi.status() != WL_CONNECTED) {
     delay(500); Serial.print(".");
   }
   Serial.println("\n[OK] WiFi Terhubung");
-  Serial.print("IP: "); Serial.println(WiFi.localIP());
   lcd.clear(); lcd.print("WiFi OK");
 
-  // NTP Time
   configTime(gmtOffset_sec, daylightOffset_sec, ntpServer);
   Serial.println("Waktu sinkron NTP OK");
 
-  // TLS insecure untuk development
-  net.setInsecure();
-
-  // MQTT Setup
   mqttClient.setId(mqtt_client_id);
   mqttClient.setUsernamePassword(mqtt_user, mqtt_pass);
   mqttClient.onMessage(onMqttMessage);
@@ -133,8 +127,16 @@ void loop() {
       return;
     }
 
-    double vrl = ((double)mq2_raw / ADC_RESOLUTION) * RL_VALUE;
-    double rs_ro_ratio = ((RL_VALUE - vrl) / vrl) / R0;
+    // Hitung tegangan Vrl dari sensor
+    double vrl = ((double)mq2_raw / ADC_RESOLUTION) * 5.0;
+
+    // Hitung Rs
+    double rs = RL_VALUE * (5.0 - vrl) / vrl;
+
+    // Hitung Rs/R0
+    double rs_ro_ratio = rs / R0;
+
+    // Hitung PPM
     double ppm = pow(10, ((log10(rs_ro_ratio) - SMOKE_INTERCEPT_Y) / SMOKE_SLOPE) + log10(SMOKE_INTERCEPT_X));
 
     struct tm timeinfo;
