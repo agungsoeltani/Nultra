@@ -3,7 +3,7 @@ name: Auto Git Pull on Push
 on:
   push:
     branches:
-      - main  # atau ganti ke branch lain kalau perlu
+      - main  
 
 jobs:
   pull-changes:
