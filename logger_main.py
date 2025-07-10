@@ -5,7 +5,7 @@ from influx_handler import InfluxDBHandler
 from mqtt_handler import MQTTHandler
 
 def run_service():
-    """Inisialisasi dan menjalankan service logger."""
+    """Inisiialisasi dan menjalankan service logger."""
     
     # 1. Validasi konfigurasi terlebih dahulu
     if not config.validate_configs():
